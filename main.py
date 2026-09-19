@@ -54,8 +54,6 @@ with writer.saving(fig, "output.mp4", dpi=600):
         im.set_data(grid)  # Update the data
         writer.grab_frame()  # Capture the frame
 
-print(np.unique(grid))
-
 plt.imshow(grid)
 plt.title("Game of Life Result")
 plt.show()
