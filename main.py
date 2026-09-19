@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.animation import FFMpegWriter
 
 from src.rules import apply_rules
 
@@ -15,7 +16,7 @@ Rules
 grid = np.zeros((50, 50), dtype=np.int8)
 grid_copy = np.zeros_like(grid)
 
-num_generations = 1
+num_generations = 5
 
 
 # TODO: fine a nice way to add those programatically
@@ -34,11 +35,24 @@ plt.imshow(grid)
 plt.title("Game of Life Initial State")
 plt.show()
 
-for generation in range(num_generations):
-    apply_rules(grid, grid_copy)
+# Set up writer
+fps = 10
+writer = FFMpegWriter(fps=fps)
 
-    grid = grid_copy.copy()
-    grid_copy[:, :] = 0
+fig, ax = plt.subplots()
+ax.set_title("Game of Life")
+im = ax.imshow(grid)
+
+# Create video
+with writer.saving(fig, "output.mp4", dpi=600):
+    for generation in range(num_generations):
+        apply_rules(grid, grid_copy)
+
+        grid = grid_copy.copy()
+        grid_copy[:, :] = 0
+
+        im.set_data(grid)  # Update the data
+        writer.grab_frame()  # Capture the frame
 
 print(np.unique(grid))
 
