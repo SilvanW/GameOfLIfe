@@ -33,6 +33,11 @@ grid[5, 6] = 1
 grid[6, 5] = 1
 grid[6, 6] = 1
 
+# Flipper
+grid[20, 20] = 1
+grid[20, 21] = 1
+grid[20, 22] = 1
+
 plt.imshow(grid)
 plt.title("Game of Life Initial State")
 plt.show()
