@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from src.rules import apply_rules
+
 """
 Rules
 	- cell c is 0 (dead)
@@ -16,17 +18,7 @@ grid_copy = np.zeros_like(grid)
 num_generations = 1
 
 
-MOORE_CELL_OFFSETS: list[tuple[int, int]] = [
-    (0, 1),
-    (1, 1),
-    (1, 0),
-    (1, -1),
-    (0, -1),
-    (-1, -1),
-    (-1, 0),
-    (-1, 1),
-]
-
+# TODO: fine a nice way to add those programatically
 # Still life
 grid[5, 5] = 1
 grid[5, 6] = 1
@@ -43,30 +35,7 @@ plt.title("Game of Life Initial State")
 plt.show()
 
 for generation in range(num_generations):
-    for (j, i), value in np.ndenumerate(grid[1:-1, 1:-1]):
-        # Required due to grid slicing in enumerate
-        j += 1
-        i += 1
-
-        if value == 0:
-            num_alive = 0
-            for dy, dx in MOORE_CELL_OFFSETS:
-                if grid[j + dy, i + dx] == 1:
-                    num_alive += 1
-
-            if num_alive == 3:
-                grid_copy[j, i] = 1
-
-        if value == 1:
-            num_alive = 0
-            for dy, dx in MOORE_CELL_OFFSETS:
-                if grid[j + dy, i + dx] == 1:
-                    num_alive += 1
-
-            if num_alive == 2 or num_alive == 3:
-                grid_copy[j, i] = 1
-            else:
-                grid_copy[j, i] = 0
+    apply_rules(grid, grid_copy)
 
     grid = grid_copy.copy()
     grid_copy[:, :] = 0
