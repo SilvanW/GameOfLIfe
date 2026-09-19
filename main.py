@@ -16,10 +16,10 @@ Rules
 		- else: -> 0 (dead)
 """
 
-grid = np.zeros((50, 50), dtype=np.int8)
+grid = np.zeros((500, 500), dtype=np.int8)
 grid_copy = np.zeros_like(grid)
 
-num_generations = 50
+num_generations = 1000
 
 
 # TODO: fine a nice way to add those programatically
@@ -35,11 +35,11 @@ num_generations = 50
 # grid[20, 22] = 1
 
 # Acorn
-grid[25, 25] = 1
-grid[25, 26] = 1
-grid[23, 26] = 1
-grid[24, 28] = 1
-grid[25, 29:32] = 1
+grid[250, 250] = 1
+grid[250, 251] = 1
+grid[248, 251] = 1
+grid[249, 253] = 1
+grid[250, 254:257] = 1
 
 plt.imshow(grid)
 plt.title("Game of Life Initial State")
