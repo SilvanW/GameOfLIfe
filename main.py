@@ -16,10 +16,18 @@ grid_copy = np.zeros_like(grid)
 num_generations = 1
 
 
-def get_moore_neighbourhood_cell_offsets() -> list[tuple[int, int]]:
-    return [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]
+MOORE_CELL_OFFSETS: list[tuple[int, int]] = [
+    (0, 1),
+    (1, 1),
+    (1, 0),
+    (1, -1),
+    (0, -1),
+    (-1, -1),
+    (-1, 0),
+    (-1, 1),
+]
 
-
+# Still life
 grid[5, 5] = 1
 grid[5, 6] = 1
 grid[6, 5] = 1
@@ -31,9 +39,13 @@ plt.show()
 
 for generation in range(num_generations):
     for (j, i), value in np.ndenumerate(grid[1:-1, 1:-1]):
+        # Required due to grid slicing in enumerate
+        j += 1
+        i += 1
+
         if value == 0:
             num_alive = 0
-            for dy, dx in get_moore_neighbourhood_cell_offsets():
+            for dy, dx in MOORE_CELL_OFFSETS:
                 if grid[j + dy, i + dx] == 1:
                     num_alive += 1
 
@@ -42,7 +54,7 @@ for generation in range(num_generations):
 
         if value == 1:
             num_alive = 0
-            for dy, dx in get_moore_neighbourhood_cell_offsets():
+            for dy, dx in MOORE_CELL_OFFSETS:
                 if grid[j + dy, i + dx] == 1:
                     num_alive += 1
 
