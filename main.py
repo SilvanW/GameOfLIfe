@@ -2,10 +2,11 @@ import time
 
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 from matplotlib.animation import FFMpegWriter
 from tqdm import tqdm
 
-from src.rules import apply_rules, apply_rules_numba
+from src.rules import DEVICE, apply_rules, apply_rules_conv, apply_rules_numba
 
 """
 Rules
@@ -41,6 +42,9 @@ grid[248, 251] = 1
 grid[249, 253] = 1
 grid[250, 254:257] = 1
 
+grid_tensor = torch.from_numpy(grid).float().unsqueeze(0).to(DEVICE)
+grid_copy_tensor = torch.from_numpy(grid_copy).float().unsqueeze(0).to(DEVICE)
+
 plt.imshow(grid)
 plt.title("Game of Life Initial State")
 plt.show()
@@ -58,6 +62,7 @@ with writer.saving(fig, "output.mp4", dpi=600):
     writer.grab_frame()
     start = time.perf_counter()
     for generation in tqdm(range(num_generations)):
+        break
         # apply_rules(grid, grid_copy)
         apply_rules_numba(grid, grid_copy)
 
@@ -71,6 +76,25 @@ with writer.saving(fig, "output.mp4", dpi=600):
 
 print(f"Elapsed: {end - start:.6f} s")
 
+# Torch Only
+grid_tensor = torch.from_numpy(grid).float().unsqueeze(0).to(DEVICE)
+grid_copy_tensor = torch.from_numpy(grid_copy).float().unsqueeze(0).to(DEVICE)
+
+
+start = time.perf_counter()
+for generation in tqdm(range(num_generations)):
+    apply_rules_conv(grid_tensor, grid_copy_tensor)
+    grid_tensor.copy_(grid_copy_tensor)
+
+end = time.perf_counter()
+print(f"Elapsed: {end - start:.6f} s")
+
 plt.imshow(grid)
 plt.title("Game of Life Result")
 plt.show()
+
+plt.imshow(grid_tensor.squeeze(0).cpu().numpy())
+plt.title("Game of Life Result Torch")
+plt.show()
+
+assert np.array_equal(grid, grid_tensor.squeeze(0).cpu().numpy())
