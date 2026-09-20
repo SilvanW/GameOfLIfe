@@ -1,7 +1,11 @@
+from enum import Enum
+from typing import Protocol
+
 import numpy as np
 import torch
 import torch.nn.functional as F
 from numba import jit
+from tqdm import tqdm
 
 MOORE_CELL_OFFSETS: np.ndarray = np.array(
     [
@@ -90,3 +94,76 @@ def apply_rules_conv(grid: torch.Tensor, grid_copy: torch.Tensor) -> None:
     ).float()
 
     grid_copy[:] = new_grid
+
+
+class RuleImplementation(Enum):
+    PYTHON = "python"
+    NUMBA = "numba"
+    PYTORCH = "pytorch"
+
+
+class RuleNumpy(Protocol):
+    def __call__(self, grid: np.ndarray, grid_copy: np.ndarray) -> None: ...
+
+
+class RuleTorch(Protocol):
+    def __call__(self, grid: torch.Tensor, grid_copy: torch.Tensor) -> None: ...
+
+
+RULE_IMPLEMENTATIONS: dict[RuleImplementation, RuleNumpy | RuleTorch] = {
+    RuleImplementation.PYTHON: apply_rules,
+    RuleImplementation.NUMBA: apply_rules_numba,
+    RuleImplementation.PYTORCH: apply_rules_conv,
+}
+
+
+def get_rules(rule_implementation: RuleImplementation) -> RuleNumpy | RuleTorch:
+    rules = RULE_IMPLEMENTATIONS.get(rule_implementation)
+
+    if rules is None:
+        raise NotImplementedError(f"Rule {rule_implementation} is not implemented.")
+
+    return rules
+
+
+def _simulate_numpy(
+    grid: np.ndarray, rules: RuleNumpy, n_generations: int
+) -> np.ndarray:
+    grid_copy = np.zeros_like(grid)
+    for _ in tqdm(range(n_generations)):
+        rules(grid, grid_copy)
+
+        grid = grid_copy.copy()
+        grid_copy[:, :] = 0
+
+    return grid
+
+
+def _simulate_pytorch(
+    grid: torch.Tensor, rules: RuleTorch, n_generations: int
+) -> torch.Tensor:
+    grid_copy = torch.zeros_like(grid)
+    for _ in tqdm(range(n_generations)):
+        rules(grid, grid_copy)
+        grid.copy_(grid_copy)
+
+    return grid
+
+
+def simulate(
+    rule_implementation: RuleImplementation, n_generations: int, grid: np.ndarray
+) -> np.ndarray:
+
+    apply_rules = get_rules(rule_implementation)
+
+    # Simulate with torch
+    if rule_implementation == RuleImplementation.PYTORCH:
+        grid_torch = torch.from_numpy(grid).float().unsqueeze(0).to(DEVICE)
+        result = _simulate_pytorch(
+            grid=grid_torch, rules=apply_rules, n_generations=n_generations
+        )
+        return result.squeeze(0).cpu().numpy()
+
+    # Simulate with numpy
+    result = _simulate_numpy(grid=grid, rules=apply_rules, n_generations=n_generations)
+    return result
