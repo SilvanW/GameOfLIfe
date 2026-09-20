@@ -22,10 +22,16 @@ def apply_rules(grid: np.ndarray, grid_copy: np.ndarray) -> None:
     rows, cols = grid.shape
     for j in range(1, rows - 1):
         for i in range(1, cols - 1):
+            # Avoid OverflowError due to int8 np array
+            i = int(i)
+            j = int(j)
+
             value = grid[j, i]
 
             num_alive = 0
-            for dy, dx in MOORE_CELL_OFFSETS:
+
+            # Tolist avoids OverflowError due to int8 np array
+            for dy, dx in MOORE_CELL_OFFSETS.tolist():
                 if grid[j + dy, i + dx] == 1:
                     num_alive += 1
 
