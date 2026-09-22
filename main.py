@@ -5,6 +5,7 @@ import numpy as np
 import questionary
 import torch
 
+from src.patterns import Pattern, apply_pattern, get_pattern
 from src.simulation import (
     RuleImplementation,
     simulate,
@@ -13,7 +14,7 @@ from src.simulation import (
 
 def main():
     # TODO: let user define grid size
-    grid: np.ndarray | torch.Tensor = np.zeros((500, 500), dtype=np.int8)
+    grid: np.ndarray | torch.Tensor = np.zeros((50, 50), dtype=np.int8)
 
     rule_implementation: RuleImplementation = questionary.select(
         "Which rule implementation should be used for Simulation?",
@@ -23,28 +24,21 @@ def main():
         ],
     ).ask()
 
+    pattern_selection: Pattern = questionary.select(
+        "Which pattern should be used for Simulation?",
+        choices=[
+            questionary.Choice(title=pattern.value, value=pattern)
+            for pattern in Pattern
+        ],
+    ).ask()
+
     num_generations = int(
         questionary.text("How many generations should be simulated?").ask()
     )
 
-    # TODO: fine a nice way to add those programatically
-    # Still life
-    # grid[5, 5] = 1
-    # grid[5, 6] = 1
-    # grid[6, 5] = 1
-    # grid[6, 6] = 1
+    pattern = get_pattern(pattern_selection)
 
-    # Flipper
-    # grid[20, 20] = 1
-    # grid[20, 21] = 1
-    # grid[20, 22] = 1
-
-    # Acorn
-    grid[250, 250] = 1
-    grid[250, 251] = 1
-    grid[248, 251] = 1
-    grid[249, 253] = 1
-    grid[250, 254:257] = 1
+    apply_pattern(pattern, grid)
 
     plt.imshow(grid)
     plt.title("Game of Life Initial State")
