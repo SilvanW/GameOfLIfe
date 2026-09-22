@@ -25,3 +25,4 @@ The patterns currently implemented in `pattern.py` are the following.
 - Still Life
 - Flipper
 - Acorn
+- Diehard

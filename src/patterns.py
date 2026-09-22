@@ -14,17 +14,27 @@ ACORN = np.array(
     ]
 )
 
+DIEHARD = np.array(
+    [
+        [0, 0, 0, 0, 0, 0, 1, 0],
+        [1, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 1, 1, 1],
+    ]
+)
+
 
 class Pattern(Enum):
     STILL_LIFE = "still_life"
     FLIPPER = "flipper"
     ACORN = "acorn"
+    DIEHARD = "diehard"
 
 
 PATTERNS: dict[Pattern, np.ndarray] = {
     Pattern.STILL_LIFE: STILL_LIFE,
     Pattern.FLIPPER: FLIPPER,
     Pattern.ACORN: ACORN,
+    Pattern.DIEHARD: DIEHARD,
 }
 
 
