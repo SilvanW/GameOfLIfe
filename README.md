@@ -17,3 +17,11 @@ Currently there are the three following implementations of the game of life rule
 - Pytorch: 2D Conv Kernel running on mps or cpu
 
 The user is asked about which implementation should be used via the cli.
+
+## Patterns
+
+The patterns currently implemented in `pattern.py` are the following.
+
+- Still Life
+- Flipper
+- Acorn
