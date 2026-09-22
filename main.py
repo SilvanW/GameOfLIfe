@@ -13,8 +13,12 @@ from src.simulation import (
 
 
 def main():
-    # TODO: let user define grid size
-    grid: np.ndarray | torch.Tensor = np.zeros((50, 50), dtype=np.int8)
+
+    grid_dimenstion = int(
+        questionary.text(
+            "How wide should the square simulation grid be in cells?"
+        ).ask()
+    )
 
     rule_implementation: RuleImplementation = questionary.select(
         "Which rule implementation should be used for Simulation?",
@@ -34,6 +38,10 @@ def main():
 
     num_generations = int(
         questionary.text("How many generations should be simulated?").ask()
+    )
+
+    grid: np.ndarray | torch.Tensor = np.zeros(
+        (grid_dimenstion, grid_dimenstion), dtype=np.int8
     )
 
     pattern = get_pattern(pattern_selection)
