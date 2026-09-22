@@ -153,7 +153,16 @@ def _simulate_pytorch(
 def simulate(
     rule_implementation: RuleImplementation, n_generations: int, grid: np.ndarray
 ) -> np.ndarray:
+    """Simulate game of life for n_generations using the provided grid and the selected rule implementation.
 
+    Args:
+        rule_implementation (RuleImplementation): Implementation of the Rules to be used
+        n_generations (int): Number of generations to simulated
+        grid (np.ndarray): The grid to simulate off of
+
+    Returns:
+        np.ndarray: Resulting grid after n_generations
+    """
     apply_rules = get_rules(rule_implementation)
 
     # Simulate with torch

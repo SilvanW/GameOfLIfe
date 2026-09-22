@@ -29,15 +29,36 @@ PATTERNS: dict[Pattern, np.ndarray] = {
 
 
 def get_pattern(pattern: Pattern) -> np.ndarray:
+    """Get the selected Pattern as a np array to be stamped into the grid
+
+    Args:
+        pattern (Pattern): The Pattern selection
+
+    Raises:
+        NotImplementedError: Pattern <pattern name> is not implemented
+
+    Returns:
+        np.ndarray: Selected Pattern
+    """
     retrieved_pattern = PATTERNS.get(pattern)
 
     if retrieved_pattern is None:
-        raise NotImplementedError(f"Pattern {pattern.value} is not implemente")
+        raise NotImplementedError(f"Pattern {pattern.value} is not implemented")
 
     return retrieved_pattern
 
 
 def apply_pattern(pattern: np.ndarray, grid: np.ndarray) -> None:
+    """Applies (stamps) the pattern in to the center of the grid
+
+    Args:
+        pattern (np.ndarray): The pattern to be applied into the grid
+        grid (np.ndarray): The grid the pattern should be applied to
+
+    Raises:
+        ValueError: Only 2d arrays are supported
+        ValueError: Pattern cannot be larger than grid
+    """
     if pattern.ndim != 2 or grid.ndim != 2:
         raise ValueError("Only 2d arrays are supported")
 
