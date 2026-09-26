@@ -96,10 +96,39 @@ def apply_rules_conv(grid: torch.Tensor, grid_copy: torch.Tensor) -> None:
     grid_copy[:] = new_grid
 
 
+def apply_rules_dict(grid: dict[tuple[int, int], int], grid_copy: dict) -> None:
+
+    dead_cells = {}
+
+    # Check alive cells
+    for j, i in grid:
+        num_alive = 0
+        for dy, dx in MOORE_CELL_OFFSETS.tolist():
+            if (j + dy, i + dx) in grid:
+                num_alive += 1
+            else:
+                dead_cells[(j + dy, i + dx)] = 0
+
+        if num_alive == 2 or num_alive == 3:
+            grid_copy[(j, i)] = 1
+        else:
+            grid_copy[(j, i)] = 0
+
+    for j, i in dead_cells:
+        num_alive = 0
+        for dy, dx in MOORE_CELL_OFFSETS.tolist():
+            if (j + dy, i + dx) in grid:
+                num_alive += 1
+
+        if num_alive == 3:
+            grid_copy[(j, i)] = 1
+
+
 class RuleImplementation(Enum):
     PYTHON = "python"
     NUMBA = "numba"
     PYTORCH = "pytorch"
+    DICTIONARY = "dictionary"
 
 
 class RuleNumpy(Protocol):
@@ -110,14 +139,23 @@ class RuleTorch(Protocol):
     def __call__(self, grid: torch.Tensor, grid_copy: torch.Tensor) -> None: ...
 
 
-RULE_IMPLEMENTATIONS: dict[RuleImplementation, RuleNumpy | RuleTorch] = {
+class RuleDictionary(Protocol):
+    def __call__(self, grid: dict, grid_copy: dict): ...
+
+
+RULE_IMPLEMENTATIONS: dict[
+    RuleImplementation, RuleNumpy | RuleTorch | RuleDictionary
+] = {
     RuleImplementation.PYTHON: apply_rules,
     RuleImplementation.NUMBA: apply_rules_numba,
     RuleImplementation.PYTORCH: apply_rules_conv,
+    RuleImplementation.DICTIONARY: apply_rules_dict,
 }
 
 
-def get_rules(rule_implementation: RuleImplementation) -> RuleNumpy | RuleTorch:
+def get_rules(
+    rule_implementation: RuleImplementation,
+) -> RuleNumpy | RuleTorch | RuleDictionary:
     rules = RULE_IMPLEMENTATIONS.get(rule_implementation)
 
     if rules is None:
@@ -150,6 +188,28 @@ def _simulate_pytorch(
     return grid
 
 
+def _simulate_dict(
+    grid: np.ndarray, rules: RuleDictionary, n_generations: int
+) -> np.ndarray:
+    rows, cols = np.where(grid == 1)
+
+    grid_dict = {(int(r), int(c)): int(grid[r, c]) for r, c in zip(rows, cols)}
+
+    for _ in tqdm(range(n_generations)):
+        grid_copy = {}
+        rules(grid_dict, grid_copy)
+
+        grid_dict = {k: v for k, v in grid_copy.items() if v == 1}
+
+    rows, cols = zip(*grid_dict.keys())
+    values = list(grid_dict.values())
+
+    arr = np.zeros_like(grid)
+    arr[rows, cols] = values
+
+    return arr
+
+
 def simulate(
     rule_implementation: RuleImplementation, n_generations: int, grid: np.ndarray
 ) -> np.ndarray:
@@ -172,6 +232,12 @@ def simulate(
             grid=grid_torch, rules=apply_rules, n_generations=n_generations
         )
         return result.squeeze(0).cpu().numpy()
+
+    if rule_implementation == RuleImplementation.DICTIONARY:
+        result = _simulate_dict(
+            grid=grid, rules=apply_rules, n_generations=n_generations
+        )
+        return result
 
     # Simulate with numpy
     result = _simulate_numpy(grid=grid, rules=apply_rules, n_generations=n_generations)
