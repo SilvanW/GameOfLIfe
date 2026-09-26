@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,6 +7,7 @@ import questionary
 import torch
 
 from src.patterns import Pattern, apply_pattern, get_pattern
+from src.scores import Score, add_score, ensure_score_file, plot_mean_execution_time
 from src.simulation import (
     RuleImplementation,
     simulate,
@@ -14,7 +16,9 @@ from src.simulation import (
 
 def main():
 
-    grid_dimenstion = int(
+    SCORE_PATH = Path("scores.csv")
+
+    grid_dimension = int(
         questionary.text(
             "How wide should the square simulation grid be in cells?"
         ).ask()
@@ -41,7 +45,7 @@ def main():
     )
 
     grid: np.ndarray | torch.Tensor = np.zeros(
-        (grid_dimenstion, grid_dimenstion), dtype=np.int8
+        (grid_dimension, grid_dimension), dtype=np.int8
     )
 
     pattern = get_pattern(pattern_selection)
@@ -59,6 +63,23 @@ def main():
     end = time.perf_counter()
 
     print(f"Elapsed: {end - start:.6f} s")
+
+    # Report Scores
+    ensure_score_file(SCORE_PATH)
+    add_score(
+        SCORE_PATH,
+        Score(
+            grid_dimension=grid_dimension,
+            rule_implementation=rule_implementation,
+            pattern=pattern_selection,
+            n_generations=num_generations,
+            execution_time_seconds=end - start,
+        ),
+    )
+
+    plot_mean_execution_time(
+        SCORE_PATH, grid_dimension, pattern_selection, num_generations
+    )
 
     # TODO: somehow support video export as well (use yield and export thread)
 
